@@ -1,5 +1,4 @@
-from model import *
-
+# 训练一个带BN层的FP32卷积神经网络
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -7,6 +6,35 @@ from torchvision import datasets, transforms
 import os
 import os.path as osp
 
+import torch.nn as nn
+import torch.nn.functional as F
+
+
+
+class NetBN(nn.Module):
+
+    # 定义简单的卷积神经网络，包含两层卷积、2层BN层，1层全连接层
+    def __init__(self, num_channels=1):
+        super(NetBN, self).__init__()
+        self.conv1 = nn.Conv2d(num_channels, 40, 3, 1)
+        self.bn1 = nn.BatchNorm2d(40)
+        self.conv2 = nn.Conv2d(40, 40, 3, 1)
+        self.bn2 = nn.BatchNorm2d(40)
+        self.fc = nn.Linear(5 * 5 * 40, 10)
+
+    # 普通的全精度前向传播，穿插了2次relu函数和最大池化操作
+    def forward(self, x):
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = F.relu(x)
+        x = F.max_pool2d(x, 2, 2)
+        x = self.conv2(x)
+        x = self.bn2(x)
+        x = F.relu(x)
+        x = F.max_pool2d(x, 2, 2)
+        x = x.view(-1, 5 * 5 * 40)
+        x = self.fc(x)
+        return x
 
 def train(model, device, train_loader, optimizer, epoch):
     model.train()
@@ -76,8 +104,6 @@ if __name__ == "__main__":
 
     if using_bn:
         model = NetBN().to(device)
-    else:
-        model = Net().to(device)
 
     optimizer = optim.SGD(model.parameters(), lr=lr, momentum=momentum)
 
