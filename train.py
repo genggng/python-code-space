@@ -72,8 +72,8 @@ def test(model, device, test_loader):
 
 
 if __name__ == "__main__":
-    batch_size = 64
-    test_batch_size = 64
+    batch_size = 256
+    test_batch_size = 256
     seed = 1
     epochs = 15
     lr = 0.01
